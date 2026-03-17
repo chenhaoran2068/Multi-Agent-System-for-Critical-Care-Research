@@ -1,0 +1,84 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "https://critical-care-research.local/schemas/analysis_plan.schema.json",
+  "title": "AnalysisPlan",
+  "type": "object",
+  "additionalProperties": false,
+  "required": ["plan_id", "version", "study_id", "question_id", "question_class", "unit_of_analysis", "time_zero", "primary_endpoint", "primary_analysis", "missing_data", "interpretation_boundary"],
+  "properties": {
+    "plan_id": {"type": "string"},
+    "version": {"type": "string"},
+    "study_id": {"type": "string"},
+    "question_id": {"type": "string"},
+    "question_class": {"type": "string"},
+    "unit_of_analysis": {"type": "string"},
+    "time_zero": {"type": "string"},
+    "primary_endpoint": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["name", "type"],
+      "properties": {
+        "name": {"type": "string"},
+        "type": {"type": "string", "enum": ["binary", "time-to-event", "continuous", "count"]},
+        "window": {"type": "string"}
+      }
+    },
+    "secondary_endpoints": {"type": "array", "items": {"type": "string"}, "default": []},
+    "exposure": {
+      "type": ["object", "null"],
+      "additionalProperties": false,
+      "properties": {
+        "name": {"type": "string"},
+        "window": {"type": "string"}
+      }
+    },
+    "covariates": {
+      "type": "object",
+      "additionalProperties": false,
+      "properties": {
+        "mandatory": {"type": "array", "items": {"type": "string"}, "default": []},
+        "prohibited": {"type": "array", "items": {"type": "string"}, "default": []}
+      }
+    },
+    "primary_analysis": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["method"],
+      "properties": {
+        "method": {"type": "string"},
+        "estimand_scale": {"type": "string"}
+      }
+    },
+    "secondary_analyses": {"type": "array", "items": {"type": "object"}, "default": []},
+    "subgroup_analyses": {"type": "array", "items": {"type": "object"}, "default": []},
+    "sensitivity_analyses": {"type": "array", "items": {"type": "object"}, "default": []},
+    "missing_data": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["primary_strategy"],
+      "properties": {
+        "primary_strategy": {"type": "string"},
+        "sensitivity_strategy": {"type": "string"}
+      }
+    },
+    "model_diagnostics": {"type": "array", "items": {"type": "string"}, "default": []},
+    "multiplicity": {"type": "object", "additionalProperties": false, "properties": {"policy": {"type": "string"}}},
+    "outputs": {
+      "type": "object",
+      "additionalProperties": false,
+      "properties": {
+        "tables": {"type": "array", "items": {"type": "string"}, "default": []},
+        "figures": {"type": "array", "items": {"type": "string"}, "default": []}
+      }
+    },
+    "interpretation_boundary": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["allowed", "forbidden"],
+      "properties": {
+        "allowed": {"type": "string"},
+        "forbidden": {"type": "string"}
+      }
+    }
+  }
+}

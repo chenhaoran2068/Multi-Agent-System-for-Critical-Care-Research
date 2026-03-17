@@ -1,0 +1,22 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "https://critical-care-research.local/schemas/trace_bundle.schema.json",
+  "title": "TraceBundle",
+  "type": "object",
+  "additionalProperties": false,
+  "required": ["trace_bundle_id", "version", "study_id", "question_id", "plan_id", "dataset_version", "code_artifact_ids", "result_artifact_ids", "decision_log_ids"],
+  "properties": {
+    "trace_bundle_id": {"type": "string"},
+    "version": {"type": "string"},
+    "study_id": {"type": "string"},
+    "question_id": {"type": "string"},
+    "plan_id": {"type": "string"},
+    "dataset_version": {"type": "string"},
+    "code_artifact_ids": {"type": "array", "items": {"type": "string"}},
+    "result_artifact_ids": {"type": "array", "items": {"type": "string"}},
+    "interpretation_id": {"type": "string"},
+    "decision_log_ids": {"type": "array", "items": {"type": "string"}},
+    "run_ids": {"type": "array", "items": {"type": "string"}, "default": []},
+    "approval_nodes": {"type": "array", "items": {"type": "string"}, "default": []}
+  }
+}

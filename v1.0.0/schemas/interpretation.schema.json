@@ -1,0 +1,35 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "https://critical-care-research.local/schemas/interpretation.schema.json",
+  "title": "Interpretation",
+  "type": "object",
+  "additionalProperties": false,
+  "required": ["interpretation_id", "version", "study_id", "plan_id", "claims", "limitations"],
+  "properties": {
+    "interpretation_id": {"type": "string"},
+    "version": {"type": "string"},
+    "study_id": {"type": "string"},
+    "plan_id": {"type": "string"},
+    "claims": {
+      "type": "array",
+      "items": {
+        "type": "object",
+        "additionalProperties": false,
+        "required": ["claim_id", "claim_type", "text", "supported_result_artifact_ids"],
+        "properties": {
+          "claim_id": {"type": "string"},
+          "claim_type": {"type": "string", "enum": ["fact", "statistical_result", "interpretation", "hypothesis"]},
+          "text": {"type": "string"},
+          "supported_result_artifact_ids": {
+            "type": "array",
+            "items": {"type": "string"},
+            "minItems": 1
+          },
+          "confidence_note": {"type": "string"}
+        }
+      }
+    },
+    "limitations": {"type": "array", "items": {"type": "string"}},
+    "forbidden_claim_check": {"type": "string"}
+  }
+}

@@ -1,0 +1,485 @@
+{
+  "version": "1.0.0",
+  "pipeline_id": "critical-care-research-default",
+  "description": "Default state-machine-first orchestration contract for v1.0.0.",
+  "governing_docs": {
+    "workflow": "docs/workflow_state_machine.md",
+    "approval_matrix": "docs/approval_matrix.md",
+    "policy_rules": "docs/policy_engine_rules.yaml",
+    "handoff_contracts": "docs/handoff_contracts.md"
+  },
+  "defaults": {
+    "task_root": "outputs/{task_id}",
+    "artifacts_root": "outputs/{task_id}/artifacts",
+    "audit_root": "outputs/{task_id}/audit",
+    "logs_root": "outputs/{task_id}/logs",
+    "max_branch_parallelism": 2,
+    "max_revision_rounds": 1,
+    "default_timeout_minutes": 30,
+    "block_on_policy_violation": true,
+    "require_trace_bundle_for_release": true,
+    "require_validation_before_interpretation": true
+  },
+  "task_modes": {
+    "clinical_db_analysis": {
+      "description": "Primary v1 mode for critical care database studies.",
+      "required_stages": [
+        "intake",
+        "design",
+        "mapping",
+        "planning",
+        "approval_gate",
+        "codegen",
+        "execution",
+        "validation",
+        "interpretation",
+        "audit",
+        "delivery"
+      ]
+    },
+    "research_writing_support": {
+      "description": "Bounded writing support for internal research outputs only. Not full journal automation.",
+      "required_stages": [
+        "intake",
+        "design",
+        "planning",
+        "approval_gate",
+        "codegen",
+        "execution",
+        "validation",
+        "interpretation",
+        "audit",
+        "delivery"
+      ]
+    }
+  },
+  "states": [
+    "queued",
+    "intake_ready",
+    "design_ready",
+    "mapping_ready",
+    "plan_ready",
+    "approval_pending",
+    "approved_for_codegen",
+    "code_ready",
+    "execution_running",
+    "execution_ready",
+    "validation_ready",
+    "interpretation_ready",
+    "audit_ready",
+    "completed",
+    "revision_required",
+    "blocked_by_policy",
+    "failed"
+  ],
+  "transitions": [
+    {
+      "from": "queued",
+      "to": "intake_ready",
+      "stage": "intake"
+    },
+    {
+      "from": "intake_ready",
+      "to": "design_ready",
+      "stage": "design"
+    },
+    {
+      "from": "design_ready",
+      "to": "mapping_ready",
+      "stage": "mapping",
+      "when": "task_mode == clinical_db_analysis"
+    },
+    {
+      "from": "design_ready",
+      "to": "plan_ready",
+      "stage": "planning",
+      "when": "task_mode == research_writing_support"
+    },
+    {
+      "from": "mapping_ready",
+      "to": "plan_ready",
+      "stage": "planning"
+    },
+    {
+      "from": "plan_ready",
+      "to": "approval_pending",
+      "stage": "approval_gate"
+    },
+    {
+      "from": "approval_pending",
+      "to": "approved_for_codegen",
+      "stage": "approval_gate",
+      "when": "approval_decision in [auto-allow, allow-with-log, approved]"
+    },
+    {
+      "from": "approval_pending",
+      "to": "blocked_by_policy",
+      "stage": "approval_gate",
+      "when": "approval_decision in [require-human-approval, never-allow-in-v1, denied]"
+    },
+    {
+      "from": "approved_for_codegen",
+      "to": "code_ready",
+      "stage": "codegen"
+    },
+    {
+      "from": "code_ready",
+      "to": "execution_running",
+      "stage": "execution"
+    },
+    {
+      "from": "execution_running",
+      "to": "execution_ready",
+      "stage": "execution"
+    },
+    {
+      "from": "execution_ready",
+      "to": "validation_ready",
+      "stage": "validation"
+    },
+    {
+      "from": "validation_ready",
+      "to": "interpretation_ready",
+      "stage": "interpretation",
+      "when": "validation_status == passed"
+    },
+    {
+      "from": "validation_ready",
+      "to": "revision_required",
+      "stage": "validation",
+      "when": "validation_status in [failed, incomplete]"
+    },
+    {
+      "from": "revision_required",
+      "to": "code_ready",
+      "stage": "codegen",
+      "when": "revision_round < max_revision_rounds"
+    },
+    {
+      "from": "interpretation_ready",
+      "to": "audit_ready",
+      "stage": "audit"
+    },
+    {
+      "from": "audit_ready",
+      "to": "completed",
+      "stage": "delivery",
+      "when": "trace_bundle_complete == true"
+    },
+    {
+      "from": "audit_ready",
+      "to": "revision_required",
+      "stage": "audit",
+      "when": "trace_bundle_complete == false"
+    },
+    {
+      "from": "queued",
+      "to": "failed",
+      "stage": "fatal"
+    },
+    {
+      "from": "intake_ready",
+      "to": "failed",
+      "stage": "fatal"
+    },
+    {
+      "from": "design_ready",
+      "to": "failed",
+      "stage": "fatal"
+    },
+    {
+      "from": "mapping_ready",
+      "to": "failed",
+      "stage": "fatal"
+    },
+    {
+      "from": "plan_ready",
+      "to": "failed",
+      "stage": "fatal"
+    },
+    {
+      "from": "approved_for_codegen",
+      "to": "failed",
+      "stage": "fatal"
+    },
+    {
+      "from": "code_ready",
+      "to": "failed",
+      "stage": "fatal"
+    },
+    {
+      "from": "execution_running",
+      "to": "failed",
+      "stage": "fatal"
+    },
+    {
+      "from": "execution_ready",
+      "to": "failed",
+      "stage": "fatal"
+    },
+    {
+      "from": "validation_ready",
+      "to": "failed",
+      "stage": "fatal"
+    },
+    {
+      "from": "interpretation_ready",
+      "to": "failed",
+      "stage": "fatal"
+    },
+    {
+      "from": "audit_ready",
+      "to": "failed",
+      "stage": "fatal"
+    }
+  ],
+  "stages": {
+    "intake": {
+      "owner": "orchestrator-agent",
+      "required_outputs": [
+        "research_question"
+      ]
+    },
+    "design": {
+      "owner": "study-design-agent",
+      "required_outputs": [
+        "research_question"
+      ]
+    },
+    "mapping": {
+      "owner": "data-mapping-agent",
+      "required_outputs": [
+        "variable_mapping"
+      ]
+    },
+    "planning": {
+      "owner": "analysis-planning-agent",
+      "required_outputs": [
+        "analysis_plan"
+      ]
+    },
+    "approval_gate": {
+      "owner": "orchestrator-agent",
+      "required_outputs": [
+        "approval_record"
+      ]
+    },
+    "codegen": {
+      "owner": "code-generation-agent",
+      "required_outputs": [
+        "code_artifact"
+      ]
+    },
+    "execution": {
+      "owner": "code-generation-agent",
+      "required_outputs": [
+        "run_manifest",
+        "result_artifact"
+      ]
+    },
+    "validation": {
+      "owner": "execution-validator-agent",
+      "required_outputs": [
+        "validation_report"
+      ]
+    },
+    "interpretation": {
+      "owner": "interpretation-agent",
+      "required_outputs": [
+        "interpretation"
+      ]
+    },
+    "audit": {
+      "owner": "audit-trace-agent",
+      "required_outputs": [
+        "trace_bundle",
+        "audit_summary"
+      ]
+    },
+    "delivery": {
+      "owner": "orchestrator-agent",
+      "required_outputs": [
+        "delivery_package"
+      ]
+    }
+  },
+  "branch_templates": {
+    "analysis_core": {
+      "description": "Main clinical database analysis branch.",
+      "allowed_agents": [
+        "study-design-agent",
+        "data-mapping-agent",
+        "analysis-planning-agent",
+        "code-generation-agent",
+        "execution-validator-agent",
+        "interpretation-agent",
+        "audit-trace-agent"
+      ],
+      "required_objects": [
+        "research_question",
+        "variable_mapping",
+        "analysis_plan",
+        "code_artifact",
+        "result_artifact",
+        "interpretation",
+        "trace_bundle"
+      ]
+    },
+    "sensitivity_check": {
+      "description": "Bounded sensitivity analysis branch under the same main research objective.",
+      "requires_parent_plan": true,
+      "promotion_requires_human_approval": false,
+      "required_objects": [
+        "analysis_plan",
+        "code_artifact",
+        "result_artifact",
+        "validation_report"
+      ]
+    },
+    "ideas_summary": {
+      "description": "Non-executing side-idea branch for adjacent hypotheses.",
+      "execution_mode": "summary_only",
+      "required_objects": [
+        "idea_summary"
+      ]
+    },
+    "research_writing_internal_summary": {
+      "description": "Generate an internal research-facing summary from validated result artifacts.",
+      "mode": "serial",
+      "allowed_agents": [
+        "analysis-planning-agent",
+        "interpretation-agent",
+        "audit-trace-agent"
+      ],
+      "required_upstream_states": [
+        "validation_ready"
+      ],
+      "required_inputs": [
+        "validated_result_artifacts",
+        "analysis_plan",
+        "validation_report"
+      ],
+      "required_object_refs": [
+        "analysis_plan",
+        "result_artifact",
+        "validation_report"
+      ],
+      "produces": [
+        "interpretation",
+        "internal_summary_draft",
+        "trace_bundle"
+      ],
+      "output_contract": {
+        "internal_summary_draft": {
+          "format": "markdown_or_json",
+          "must_include": [
+            "study_objective",
+            "validated_key_findings",
+            "limitations",
+            "interpretation_boundary"
+          ]
+        }
+      },
+      "forbidden_outputs": [
+        "final_manuscript_submission_package",
+        "external_publication_claims"
+      ]
+    },
+    "research_writing_methods_appendix": {
+      "description": "Produce a structured methods appendix draft aligned to the approved SAP.",
+      "mode": "serial",
+      "allowed_agents": [
+        "analysis-planning-agent",
+        "code-generation-agent",
+        "audit-trace-agent"
+      ],
+      "required_inputs": [
+        "research_question",
+        "analysis_plan",
+        "code_artifact"
+      ],
+      "required_object_refs": [
+        "research_question",
+        "analysis_plan",
+        "code_artifact"
+      ],
+      "produces": [
+        "methods_appendix_draft",
+        "code_trace_index"
+      ],
+      "output_contract": {
+        "methods_appendix_draft": {
+          "format": "markdown_or_json",
+          "must_include": [
+            "cohort_definition_summary",
+            "time_zero_definition",
+            "primary_analysis_method",
+            "covariate_strategy",
+            "missing_data_strategy"
+          ]
+        },
+        "code_trace_index": {
+          "format": "json",
+          "must_include": [
+            "plan_id",
+            "code_artifact_ids",
+            "entrypoints"
+          ]
+        }
+      },
+      "review_level": "allow-with-log"
+    },
+    "research_writing_limitations_note": {
+      "description": "Generate a conservative limitations and interpretation-boundary note.",
+      "mode": "serial",
+      "allowed_agents": [
+        "interpretation-agent",
+        "audit-trace-agent"
+      ],
+      "required_inputs": [
+        "validated_result_artifacts",
+        "validation_report",
+        "analysis_plan"
+      ],
+      "required_object_refs": [
+        "result_artifact",
+        "validation_report",
+        "analysis_plan"
+      ],
+      "produces": [
+        "limitations_note",
+        "claim_boundary_check"
+      ],
+      "output_contract": {
+        "limitations_note": {
+          "format": "markdown_or_json",
+          "must_include": [
+            "result_scope",
+            "major_limitations",
+            "uncertainty_notes",
+            "forbidden_claims"
+          ]
+        },
+        "claim_boundary_check": {
+          "format": "json",
+          "must_include": [
+            "allowed_claim_language",
+            "forbidden_claim_language",
+            "validated_result_artifact_ids"
+          ]
+        }
+      }
+    }
+  },
+  "required_release_bundle": [
+    "research_question",
+    "analysis_plan",
+    "code_artifact",
+    "result_artifact",
+    "validation_report",
+    "interpretation",
+    "trace_bundle",
+    "audit_summary",
+    "run_manifest"
+  ]
+}

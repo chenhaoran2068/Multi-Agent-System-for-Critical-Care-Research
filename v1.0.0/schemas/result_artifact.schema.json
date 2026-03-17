@@ -1,0 +1,22 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "https://critical-care-research.local/schemas/result_artifact.schema.json",
+  "title": "ResultArtifact",
+  "type": "object",
+  "additionalProperties": false,
+  "required": ["result_artifact_id", "version", "study_id", "plan_id", "run_id", "artifact_type", "label", "source_code_artifact_id"],
+  "properties": {
+    "result_artifact_id": {"type": "string"},
+    "version": {"type": "string"},
+    "study_id": {"type": "string"},
+    "plan_id": {"type": "string"},
+    "run_id": {"type": "string"},
+    "artifact_type": {"type": "string", "enum": ["table", "figure", "metric", "model_output", "validation_report"]},
+    "label": {"type": "string"},
+    "path": {"type": "string"},
+    "source_code_artifact_id": {"type": "string"},
+    "dataset_version": {"type": "string"},
+    "statistical_summary": {"type": "object", "additionalProperties": true},
+    "validation_status": {"type": "string", "enum": ["pending", "passed", "failed"], "default": "pending"}
+  }
+}

@@ -1,0 +1,108 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "https://critical-care-research.local/schemas/research_question.schema.json",
+  "title": "ResearchQuestion",
+  "type": "object",
+  "additionalProperties": false,
+  "required": [
+    "question_id",
+    "version",
+    "study_id",
+    "study_title",
+    "question_class",
+    "clinical_context",
+    "study_mode",
+    "unit_of_analysis",
+    "population",
+    "primary_outcome",
+    "time_zero",
+    "baseline_window",
+    "followup_window",
+    "estimand"
+  ],
+  "properties": {
+    "question_id": {"type": "string", "minLength": 1},
+    "version": {"type": "string", "minLength": 1},
+    "study_id": {"type": "string", "minLength": 1},
+    "study_title": {"type": "string", "minLength": 1},
+    "question_class": {
+      "type": "string",
+      "enum": ["descriptive", "association", "prediction", "time-to-event", "longitudinal repeated-measure", "subgroup analysis", "sensitivity analysis"]
+    },
+    "clinical_context": {"type": "string", "minLength": 1},
+    "study_mode": {"type": "string", "enum": ["confirmatory", "exploratory"]},
+    "unit_of_analysis": {"type": "string", "enum": ["patient", "hospital_admission", "icu_stay"]},
+    "population": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["description", "inclusion_criteria", "exclusion_criteria"],
+      "properties": {
+        "description": {"type": "string"},
+        "inclusion_criteria": {"type": "array", "items": {"type": "string"}},
+        "exclusion_criteria": {"type": "array", "items": {"type": "string"}}
+      }
+    },
+    "exposure": {
+      "type": ["object", "null"],
+      "additionalProperties": false,
+      "properties": {
+        "name": {"type": "string"},
+        "definition": {"type": "string"}
+      }
+    },
+    "comparator": {
+      "type": ["object", "null"],
+      "additionalProperties": false,
+      "properties": {
+        "name": {"type": "string"},
+        "definition": {"type": "string"}
+      }
+    },
+    "primary_outcome": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["name", "definition"],
+      "properties": {
+        "name": {"type": "string"},
+        "definition": {"type": "string"}
+      }
+    },
+    "secondary_outcomes": {
+      "type": "array",
+      "items": {
+        "type": "object",
+        "additionalProperties": false,
+        "required": ["name"],
+        "properties": {
+          "name": {"type": "string"},
+          "definition": {"type": "string"}
+        }
+      },
+      "default": []
+    },
+    "time_zero": {"type": "string", "minLength": 1},
+    "baseline_window": {"$ref": "#/$defs/timeWindow"},
+    "followup_window": {"$ref": "#/$defs/timeWindow"},
+    "key_confounders": {"type": "array", "items": {"type": "string"}, "default": []},
+    "estimand": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["target"],
+      "properties": {
+        "target": {"type": "string"},
+        "scale": {"type": "string"}
+      }
+    }
+  },
+  "$defs": {
+    "timeWindow": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["start_minutes", "end_minutes"],
+      "properties": {
+        "start_minutes": {"type": "integer"},
+        "end_minutes": {"type": "integer"}
+      }
+    }
+  }
+}

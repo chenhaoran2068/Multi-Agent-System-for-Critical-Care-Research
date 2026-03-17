@@ -1,0 +1,19 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "https://critical-care-research.local/schemas/idea_summary.schema.json",
+  "title": "IdeaSummary",
+  "type": "object",
+  "additionalProperties": false,
+  "required": ["idea_id", "version", "study_id", "title", "category", "summary", "execution_status"],
+  "properties": {
+    "idea_id": {"type": "string"},
+    "version": {"type": "string"},
+    "study_id": {"type": "string"},
+    "title": {"type": "string"},
+    "category": {"type": "string", "enum": ["near-scope extension", "future analysis candidate", "out-of-scope idea"]},
+    "summary": {"type": "string"},
+    "rationale": {"type": "string"},
+    "promotion_condition": {"type": "string"},
+    "execution_status": {"type": "string", "enum": ["summary_only", "pending_approval", "promoted"]}
+  }
+}

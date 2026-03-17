@@ -1,0 +1,78 @@
+{
+  "manifest_version": "1.0.0",
+  "task_id": "task_template_001",
+  "task_mode": "clinical_db_analysis",
+  "study_id": "study_template_001",
+  "study_title": "Template study title",
+  "pipeline_id": "critical-care-research-default",
+  "pipeline_version": "1.0.0",
+  "current_state": "queued",
+  "last_stage": null,
+  "paths": {
+    "task_root": "outputs/task_template_001",
+    "artifacts_root": "outputs/task_template_001/artifacts",
+    "audit_root": "outputs/task_template_001/audit",
+    "logs_root": "outputs/task_template_001/logs"
+  },
+  "release_bundle_expected": [
+    "research_question",
+    "analysis_plan",
+    "code_artifact",
+    "result_artifact",
+    "validation_report",
+    "interpretation",
+    "trace_bundle",
+    "audit_summary",
+    "run_manifest"
+  ],
+  "object_index": {
+    "research_question": [],
+    "variable_mapping": [],
+    "analysis_plan": [],
+    "code_artifact": [],
+    "result_artifact": [],
+    "validation_report": [],
+    "interpretation": [],
+    "trace_bundle": [],
+    "audit_summary": []
+  },
+  "execution_context": {
+    "dataset_version": "dataset_version_placeholder",
+    "environment": {
+      "runtime": "python_or_r_placeholder",
+      "container": "container_placeholder",
+      "dependency_snapshot": []
+    },
+    "random_seed": null,
+    "determinism_note": "Set when relevant."
+  },
+  "approval_context": {
+    "approval_status": "pending",
+    "approval_ids": [],
+    "policy_refs": [
+      "docs/approval_matrix.md",
+      "docs/policy_engine_rules.yaml"
+    ]
+  },
+  "validation_context": {
+    "validation_status": "pending",
+    "validation_report_ids": []
+  },
+  "audit_context": {
+    "audit_status": "pending",
+    "decision_log_path": "outputs/task_template_001/audit/decision_log.jsonl",
+    "approval_log_path": "outputs/task_template_001/audit/approval_log.jsonl",
+    "state_transition_log_path": "outputs/task_template_001/audit/state_transitions.jsonl",
+    "release_decision_path": "outputs/task_template_001/audit/release_decision.json"
+  },
+  "state_history": [
+    {
+      "state": "queued",
+      "entered_at": "2026-03-17T00:00:00Z",
+      "actor": "system",
+      "note": "Template manifest initialized"
+    }
+  ],
+  "last_transition": null,
+  "notes": "Replace placeholder IDs and paths when a real task is initialized."
+}

@@ -1,0 +1,175 @@
+version: 1.0.0
+policy_engine: critical-care-research-v1
+
+principles:
+  - scope-first
+  - sap-before-code
+  - validation-before-interpretation
+  - trace-before-release
+  - human-approval-for-material-escalation
+
+rule_sets:
+  scope_guardrail:
+    description: Reject or downgrade tasks outside v1 scope.
+    rules:
+      - id: scope.domain.must_be_critical_care
+        severity: hard_block
+        when: task.domain not in ["critical_care", "icu", "emergency_medicine"]
+        action: block
+        message: Task is outside the declared v1 clinical domain.
+      - id: scope.task.must_be_database_research
+        severity: hard_block
+        when: task.task_type in ["bedside_decision", "wet_lab", "omics_pipeline"]
+        action: block
+        message: v1 only supports structured clinical database research workflows.
+      - id: scope.side_ideas.summary_only
+        severity: soft_degrade
+        when: branch.category in ["future_analysis_candidate", "out_of_scope_idea"]
+        action: reroute_to_ideas_summary
+        message: Side ideas may be recorded but not deeply executed by default.
+
+  plan_first_guardrail:
+    description: Code and execution must not start before planning and approval logic complete.
+    rules:
+      - id: planning.sap.required_before_codegen
+        severity: hard_block
+        when: state not in ["approved_for_codegen", "code_ready", "execution_running", "execution_ready", "validation_ready", "interpretation_ready", "audit_ready", "completed"] and requested_stage == "codegen"
+        action: block
+        message: Code generation is not allowed before plan approval.
+      - id: execution.plan.required
+        severity: hard_block
+        when: analysis_plan.exists == false and requested_stage in ["codegen", "execution"]
+        action: block
+        message: Analysis plan is required before code generation or execution.
+
+  evidence_guardrail:
+    description: Claims may only rely on validated results.
+    rules:
+      - id: evidence.validation.required_before_interpretation
+        severity: hard_block
+        when: validation.status != "passed" and requested_stage == "interpretation"
+        action: block
+        message: Interpretation requires validated outputs.
+      - id: evidence.claims.must_link_results
+        severity: hard_block
+        when: interpretation.has_unlinked_claims == true
+        action: block
+        message: Every formal claim must cite at least one result artifact.
+      - id: evidence.causal_language.needs_approval
+        severity: approval_required
+        when: interpretation.uses_causal_language == true
+        action: require_human_approval
+        message: Causal wording requires explicit human approval in v1.
+
+  traceability_guardrail:
+    description: Release is blocked when the evidence chain is incomplete.
+    rules:
+      - id: trace.release_requires_bundle
+        severity: hard_block
+        when: trace_bundle.complete != true and requested_stage == "delivery"
+        action: block
+        message: Release requires a complete trace bundle.
+      - id: trace.run_manifest.required
+        severity: hard_block
+        when: run_manifest.exists != true and requested_stage in ["validation", "interpretation", "audit", "delivery"]
+        action: block
+        message: Run manifest is missing.
+      - id: trace.approval_record.required
+        severity: hard_block
+        when: approval_record.exists != true and requested_stage in ["codegen", "execution", "validation", "interpretation", "audit", "delivery"]
+        action: block
+        message: Approval record is missing.
+
+  database_foundation_guardrail:
+    description: Protect upstream data foundation from silent mutation.
+    rules:
+      - id: db.raw.read.requires_approval
+        severity: approval_required
+        when: action.dataset_layer == "raw" and action.mode == "read"
+        action: require_human_approval
+        message: Raw-layer access requires explicit human approval.
+      - id: db.protected.write.forbidden
+        severity: hard_block
+        when: action.dataset_layer in ["raw", "split_cleaned", "formatted", "standardized", "index"] and action.mode in ["write", "overwrite", "delete"]
+        action: block
+        message: Protected foundation layers are read-only in v1 unless separately approved outside this workflow.
+      - id: db.new_variable.insertion.requires_approval
+        severity: approval_required
+        when: action.kind == "new_variable_insertion"
+        action: require_human_approval
+        message: New variable insertion requires explicit human approval.
+
+  statistical_guardrail:
+    description: Keep methods narrow and conservative.
+    rules:
+      - id: stats.default_time_zero.non_default_requires_approval
+        severity: approval_required
+        when: research_question.time_zero != "ICU admission"
+        action: require_human_approval
+        message: Non-default time zero requires approval.
+      - id: stats.method.family_switch_requires_approval
+        severity: approval_required
+        when: analysis_plan.major_method_family_changed == true
+        action: require_human_approval
+        message: Major method-family switches require approval.
+      - id: stats.missing_data.change_requires_approval
+        severity: approval_required
+        when: analysis_plan.missing_data_strategy_changed == true
+        action: require_human_approval
+        message: Missing-data strategy changes require approval.
+      - id: stats.uncontrolled_subgroup_growth.block
+        severity: hard_block
+        when: analysis_plan.subgroup_count > 3 and approval.override_subgroup_growth != true
+        action: block
+        message: Uncontrolled subgroup expansion is blocked in v1.
+
+  execution_guardrail:
+    description: Technical retries are allowed, methodological downgrades are not autonomous.
+    rules:
+      - id: execution.rerun.allowed_with_log
+        severity: log_only
+        when: action.kind == "rerun_failed_task" and action.plan_changed != true
+        action: allow_with_log
+        message: Technical reruns are allowed with logging.
+      - id: execution.auto_downgrade_method.requires_approval
+        severity: approval_required
+        when: action.kind == "downgrade_method_after_failure"
+        action: require_human_approval
+        message: Method downgrades after failure require approval.
+      - id: execution.placeholder_results.forbidden
+        severity: hard_block
+        when: action.kind == "fabricate_placeholder_results"
+        action: block
+        message: Placeholder results are forbidden.
+
+  release_guardrail:
+    description: Final delivery must remain internal and conservative.
+    rules:
+      - id: release.external_claims.requires_approval
+        severity: approval_required
+        when: delivery.mode == "external_style" or delivery.audience == "publication_ready"
+        action: require_human_approval
+        message: Publication-oriented delivery requires explicit human approval.
+      - id: release.clinical_advice.forbidden
+        severity: hard_block
+        when: delivery.contains_clinical_advice == true
+        action: block
+        message: Clinical-advice-style output is forbidden in v1.
+      - id: release.audit.required
+        severity: hard_block
+        when: audit.status != "passed" and requested_stage == "delivery"
+        action: block
+        message: Delivery requires audit pass.
+
+resolution_order:
+  - hard_block
+  - approval_required
+  - soft_degrade
+  - log_only
+
+artifacts_expected:
+  - approval_record
+  - run_manifest
+  - validation_report
+  - trace_bundle
+  - audit_summary

@@ -1,0 +1,22 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "https://critical-care-research.local/schemas/code_artifact.schema.json",
+  "title": "CodeArtifact",
+  "type": "object",
+  "additionalProperties": false,
+  "required": ["code_artifact_id", "version", "study_id", "plan_id", "language", "entrypoint", "generated_files"],
+  "properties": {
+    "code_artifact_id": {"type": "string"},
+    "version": {"type": "string"},
+    "study_id": {"type": "string"},
+    "plan_id": {"type": "string"},
+    "language": {"type": "string", "enum": ["python", "r", "sql", "mixed"]},
+    "entrypoint": {"type": "string"},
+    "generated_files": {"type": "array", "items": {"type": "string"}},
+    "dependencies": {"type": "array", "items": {"type": "string"}, "default": []},
+    "input_datasets": {"type": "array", "items": {"type": "string"}, "default": []},
+    "planned_outputs": {"type": "array", "items": {"type": "string"}, "default": []},
+    "code_hash": {"type": "string"},
+    "notes": {"type": "string"}
+  }
+}

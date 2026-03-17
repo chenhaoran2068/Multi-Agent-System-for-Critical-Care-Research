@@ -1,0 +1,58 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "https://critical-care-research.local/schemas/variable_mapping.schema.json",
+  "title": "VariableMapping",
+  "type": "object",
+  "additionalProperties": false,
+  "required": ["mapping_id", "version", "study_id", "question_id", "variables"],
+  "properties": {
+    "mapping_id": {"type": "string"},
+    "version": {"type": "string"},
+    "study_id": {"type": "string"},
+    "question_id": {"type": "string"},
+    "variables": {
+      "type": "array",
+      "items": {
+        "type": "object",
+        "additionalProperties": false,
+        "required": ["analysis_variable", "variable_class", "status"],
+        "properties": {
+          "analysis_variable": {"type": "string"},
+          "variable_class": {"type": "string", "enum": ["exposure", "comparator", "primary_outcome", "secondary_outcome", "baseline_covariate", "stratification", "sensitivity", "derived"]},
+          "status": {"type": "string", "enum": ["mapped", "missing", "proposed"]},
+          "source_layer": {"type": "string"},
+          "source_location": {"type": "string"},
+          "source_field": {"type": "string"},
+          "standard_variable_name": {"type": "string"},
+          "unit": {"type": "string"},
+          "derivation_rule": {"type": "string"},
+          "time_window": {
+            "type": ["object", "null"],
+            "additionalProperties": false,
+            "properties": {
+              "start_minutes": {"type": "integer"},
+              "end_minutes": {"type": "integer"},
+              "aggregation": {"type": "string"}
+            }
+          },
+          "notes": {"type": "string"}
+        }
+      }
+    },
+    "missing_variable_report": {
+      "type": "array",
+      "items": {
+        "type": "object",
+        "additionalProperties": false,
+        "required": ["variable_name", "reason"],
+        "properties": {
+          "variable_name": {"type": "string"},
+          "reason": {"type": "string"},
+          "proposed_target_layer": {"type": "string"},
+          "requires_human_approval": {"type": "boolean", "default": true}
+        }
+      },
+      "default": []
+    }
+  }
+}
